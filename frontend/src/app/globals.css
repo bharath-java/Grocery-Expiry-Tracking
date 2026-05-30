@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2E7D32;
+  --color-primary-light: #4CAF50;
+  --color-primary-bg: #E8F5E9;
+  
+  --color-expired: #EF5350;
+  --color-expiring-soon: #FF9800;
+  --color-good: #4CAF50;
+  
+  --color-brand-red: #EF5350;
+  --color-brand-orange: #FF9800;
+  --color-brand-green: #2E7D32;
+  
+  --radius-custom: 1.25rem;
+
+  /* Premium high contrast, extremely readable, user-friendly slate colors (forced to luxury dark mode) */
+  --color-white: #16222f; /* Deep elegant dark slate for cards (replaces light white background!) */
+  
+  --color-slate-50: #1c2b3a; /* Lighter slate hover states */
+  --color-slate-100: #223347; /* Elegant dark borders */
+  --color-slate-150: #2a3e55;
+  --color-slate-200: #314862;
+  --color-slate-300: #425b7a;
+  --color-slate-350: #cbd5e1;
+  --color-slate-400: #cbd5e1; /* Soft cream grey text */
+  --color-slate-450: #cbd5e1; 
+  --color-slate-500: #e2e8f0; /* Crisp cream grey text */
+  --color-slate-650: #e2e8f0;
+  --color-slate-800: #ffffff; /* Solid white header text (replaces black!) */
+  --color-slate-900: #ffffff; /* Solid white text (replaces black!) */
+  --color-slate-950: #ffffff;
+  
+  --color-zinc-900: #101720;
+  --color-zinc-850: #16222f;
+  --color-zinc-800: #1c2b3a;
+  --color-zinc-700: #2a3e55;
+  --color-zinc-650: #cbd5e1;
+  --color-zinc-500: #cbd5e1;
+  --color-zinc-400: #e2e8f0;
+}
+
+:root {
+  --background: #0b1116; /* Clean deep slate-black background */
+  --foreground: #ffffff; /* Crystal highly-visible white text */
+}
+
+/* Universal global typography scaling by +2px (highly readable on mobile!) */
+html {
+  font-size: 18px !important; /* Scale up all relative rem/em text sizes (+2px base) */
+}
+
+/* Explicitly scale up arbitrary pixel classes by +2px for complete coverage */
+.text-\[8px\] { font-size: 10px !important; }
+.text-\[9px\] { font-size: 11px !important; }
+.text-\[10px\] { font-size: 12px !important; }
+.text-\[11px\] { font-size: 13px !important; }
+.text-\[12px\] { font-size: 14px !important; }
+.text-\[13px\] { font-size: 15px !important; }
+.text-\[14px\] { font-size: 16px !important; }
+.text-\[15px\] { font-size: 17px !important; }
+
+.dark {
+  --background: #0b1116; /* Clean deep slate-black background */
+  --foreground: #ffffff; /* Crystal highly-visible white text */
+}
+
+body {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Force excellent text visibility for form fields and control buttons across both light and dark modes */
+input, select, textarea, option {
+  color: #ffffff !important; /* Solid bright white globally in all modes (no black text!) */
+}
+
+/* Visible high contrast placeholder styling */
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important; /* Gray 500 */
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #a1a1aa !important; /* Zinc 400 */
+}
+
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+}
+
+
