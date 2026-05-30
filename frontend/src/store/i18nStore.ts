@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { translations, Language } from '../utils/translations';
 
-interface I18nState {
+export interface I18nState {
   lang: Language;
   setLanguage: (lang: Language) => void;
   t: (key: keyof typeof translations['en'], variables?: Record<string, string | number>) => string;

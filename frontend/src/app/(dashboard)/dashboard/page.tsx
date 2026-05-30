@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
   // Expiring soon items only - scroll option enabled, showing all items
   const expiringSoonItems = groceries
-    .filter(item => item.status === 'Expiring Soon');
+    .filter((item: GroceryItem) => item.status === 'Expiring Soon');
 
   return (
     <div className="select-none flex flex-col h-full overflow-hidden justify-between space-y-3 pb-1">
@@ -169,7 +169,7 @@ export default function DashboardPage() {
             </div>
           ) : (
              <div className="flex-grow overflow-y-auto no-scrollbar divide-y divide-slate-100 dark:divide-zinc-800/60">
-              {expiringSoonItems.map(item => {
+              {expiringSoonItems.map((item: GroceryItem) => {
                 const daysLeft = getDaysLeft(item.expiryDate);
                 return (
                   <div 

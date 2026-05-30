@@ -1,7 +1,7 @@
 'use client';
 
 import { GroceryItem } from '../../store/groceryStore';
-import { useI18nStore } from '../../store/i18nStore';
+import { useI18nStore, I18nState } from '../../store/i18nStore';
 import { X, Calendar, Layers, Hash, Sparkles, Clock, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '../../utils/imageHelper';
@@ -12,7 +12,7 @@ interface ProductDetailsModalProps {
 }
 
 export default function ProductDetailsModal({ item, onClose }: ProductDetailsModalProps) {
-  const t = useI18nStore((state) => state.t);
+  const t = useI18nStore((state: I18nState) => state.t);
 
   // Emojis for category fallbacks
   const categoryIcons: Record<string, string> = {
