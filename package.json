@@ -16,7 +16,6 @@
     "prod": "npm run build:frontend && concurrently --kill-others \"npm run dev:backend\" \"npm run start:frontend\""
   },
   "devDependencies": {
-    "concurrently": "^10.0.0",
-    "lightningcss-win32-x64-msvc": "^1.32.0"
+    "concurrently": "^10.0.0"
   }
 }
