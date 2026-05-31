@@ -31,6 +31,7 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
   'https://grocery-expiry-tracking.vercel.app',
+  'https://grocery-expiry-tracking12.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean) as string[];
 
@@ -102,8 +103,8 @@ import { protect } from './middleware/auth';
 import { upload } from './middleware/upload';
 import { validate } from './middleware/validate';
 import { grocerySchema } from './validators';
-import { 
-  createGrocery, 
+import {
+  createGrocery,
   uploadImageEndpoint
 } from './controllers/groceryController';
 

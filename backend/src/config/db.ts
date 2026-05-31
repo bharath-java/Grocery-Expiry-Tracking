@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async (): Promise<void> => {
-  const srvUrl = process.env.MONGO_URL || process.env.MONGO_URI;
+  const srvUrl = process.env.MONGO_URI;
   const localUrl = 'mongodb://127.0.0.1:27017/grocery_db';
   
   if (!srvUrl) {
-    console.warn('No MONGO_URL specified, falling back to local MongoDB.');
+    console.warn('No MONGO_URI specified, falling back to local MongoDB.');
   }
 
   // Attempt 1: Connect to MongoDB Atlas (if specified)
