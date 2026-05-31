@@ -142,7 +142,14 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5002;
+let PORT = process.env.PORT || 5002;
+
+// Explicit protection: Do not use port 5001 if the frontend is using it or if it causes EADDRINUSE collisions
+if (Number(PORT) === 5001) {
+  console.log(`Port 5001 is reserved for frontend. Redirecting backend to port 5002.`);
+  PORT = 5002;
+}
+
 server.listen(PORT, () => {
   console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
