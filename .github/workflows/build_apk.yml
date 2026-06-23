@@ -78,11 +78,11 @@ jobs:
                       
               if 'coreLibraryDesugaring' not in content:
                   if 'dependencies {' in content:
-                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")')
+                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.0.4\")')
                   elif 'dependencies{' in content:
-                      content = content.replace('dependencies{', 'dependencies{\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")')
+                      content = content.replace('dependencies{', 'dependencies{\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.0.4\")')
                   else:
-                      content += '\n\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")\n}\n'
+                      content += '\n\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.0.4\")\n}\n'
                   
               with open(build_gradle_kts_path, 'w') as f:
                   f.write(content)
@@ -94,15 +94,20 @@ jobs:
                   content = f.read()
               
               if 'coreLibraryDesugaringEnabled' not in content:
-                  content = content.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true')
+                  compile_opt_start = content.find('compileOptions {')
+                  if compile_opt_start != -1:
+                      compile_opt_end = content.find('}', compile_opt_start)
+                      old_block = content[compile_opt_start:compile_opt_end+1]
+                      new_block = 'compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n        coreLibraryDesugaringEnabled true\n    }'
+                      content = content.replace(old_block, new_block)
               
               if 'coreLibraryDesugaring' not in content:
                   if 'dependencies {' in content:
-                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring \'com.android.tools:desugar_jdk_libs:2.0.3\'')
+                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring \'com.android.tools:desugar_jdk_libs:2.0.4\'')
                   elif 'dependencies{' in content:
-                      content = content.replace('dependencies{', 'dependencies{\n    coreLibraryDesugaring \'com.android.tools:desugar_jdk_libs:2.0.3\'')
+                      content = content.replace('dependencies{', 'dependencies{\n    coreLibraryDesugaring \'com.android.tools:desugar_jdk_libs:2.0.4\'')
                   else:
-                      content += '\n\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.0.3\")\n}\n'
+                      content += '\n\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.0.4\")\n}\n'
               
               with open(build_gradle_path, 'w') as f:
                   f.write(content)
