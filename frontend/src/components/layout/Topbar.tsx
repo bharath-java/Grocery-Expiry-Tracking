@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, CheckCircle2, AlertTriangle, Info, Globe, Sun, Moon } from 'lucide-react';
+import { Bell, CheckCircle2, AlertTriangle, Info, Globe, Sun, Moon, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { useI18nStore, Language } from '../../store/i18nStore';
@@ -22,7 +22,7 @@ interface DBNotification {
 export default function Topbar() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { setActiveTab } = useUIStore();
+  const { setActiveTab, openAIModal } = useUIStore();
   const { theme, toggleTheme } = useThemeStore();
   const { lang, setLanguage, t } = useI18nStore();
 
@@ -95,7 +95,7 @@ export default function Topbar() {
       {/* Desktop Greeting Header */}
       <div className="hidden md:block">
         <h2 className="text-base font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-1">
-          {t('hiUser')} <span className="animate-wiggle">👋</span>
+          {t('hiUser') ? t('hiUser').replace('User', user?.name || 'User').replace('యూజర్', user?.name || 'User').replace('యుజర్', user?.name || 'User').replace('యూజర్స్', user?.name || 'User').replace('యుజర్స్', user?.name || 'User').replace('यूज़र', user?.name || 'User') : `Hi, ${user?.name || 'User'}`} <span className="animate-wiggle">👋</span>
         </h2>
         <p className="text-[11px] text-slate-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
           {t('slogan')}
@@ -104,26 +104,24 @@ export default function Topbar() {
 
       {/* Action Controllers */}
       <div className="flex items-center gap-3">
-        {/* Mobile controls for Theme & Lang */}
-        <div className="md:hidden flex items-center gap-1.5 bg-slate-50 dark:bg-zinc-800/80 px-2 py-1 rounded-xl">
+        {/* Mobile controls for Theme */}
+        <div className="md:hidden flex items-center bg-slate-50 dark:bg-zinc-800/80 px-2 py-1 rounded-xl">
           <button 
             onClick={() => toggleTheme()}
             className="text-slate-500 dark:text-zinc-400 p-0.5"
           >
             {theme === 'light' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
           </button>
-          <span className="w-[1px] h-3 bg-slate-200 dark:bg-zinc-700 mx-1"></span>
-          <button
-            onClick={() => {
-              const idx = languages.findIndex(l => l.code === lang);
-              const nextLang = languages[(idx + 1) % languages.length].code;
-              setLanguage(nextLang);
-            }}
-            className="text-[10px] font-extrabold text-primary dark:text-green-400 px-0.5"
-          >
-            {lang.toUpperCase()}
-          </button>
         </div>
+
+        {/* Smart AI Assistant Button */}
+        <button
+          onClick={() => openAIModal()}
+          className="w-9 h-9 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/20 dark:hover:bg-purple-950/30 text-purple-650 dark:text-purple-400 flex items-center justify-center border border-purple-100 dark:border-purple-900/30 transition-all duration-150 cursor-pointer active:scale-95 shadow-sm"
+          title="Smart AI Assistant"
+        >
+          <Sparkles className="w-4.5 h-4.5" />
+        </button>
 
         {/* Real-time Notification Bell */}
         <div className="relative">

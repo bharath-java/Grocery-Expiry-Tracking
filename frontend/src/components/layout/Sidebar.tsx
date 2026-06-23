@@ -114,29 +114,6 @@ export default function Sidebar() {
 
       {/* Sidebar Footer Controls */}
       <div className="flex flex-col gap-4 border-t border-slate-100 dark:border-zinc-800 pt-4">
-        {/* Language picker */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-zinc-500 font-medium">
-            <Globe className="w-4 h-4" />
-            <span>Lang</span>
-          </div>
-          <div className="flex gap-1 bg-slate-50 dark:bg-zinc-800 p-0.5 rounded-lg border border-slate-100 dark:border-zinc-700">
-            {languages.map((l) => (
-              <button
-                key={l.code}
-                onClick={() => setLanguage(l.code)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-all duration-150 ${
-                  lang === l.code
-                    ? 'bg-white dark:bg-zinc-700 shadow-sm text-primary dark:text-green-400'
-                    : 'text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300'
-                }`}
-              >
-                {l.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Theme Toggle */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">

@@ -1,0 +1,13 @@
+{
+  "name": "grocery-tracker-web-e2e",
+  "version": "1.0.0",
+  "description": "Selenium E2E tests for Grocery Expiry Tracker Web",
+  "main": "selenium_test.js",
+  "scripts": {
+    "test": "node selenium_test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.22.0",
+    "exceljs": "^4.4.0"
+  }
+}

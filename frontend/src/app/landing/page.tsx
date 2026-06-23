@@ -33,7 +33,7 @@ export default function LandingPage() {
   useEffect(() => {
     initAuth();
 
-    // Dynamically inject the Google GIS client script to be 100% hydration & SSR safe
+    // Dynamically inject the Google GIS client script
     if (typeof window !== 'undefined' && !document.getElementById('google-gsi-client')) {
       const script = document.createElement('script');
       script.id = 'google-gsi-client';
@@ -43,6 +43,7 @@ export default function LandingPage() {
       document.body.appendChild(script);
     }
   }, [initAuth]);
+
   const getErrorMessage = (err: any, fallback: string): string => {
     const responseData = err.response?.data;
     let errMsg = responseData?.message || fallback;
@@ -181,9 +182,8 @@ export default function LandingPage() {
     const google = typeof window !== 'undefined' ? (window as any).google : null;
     const forceSimulated = (process as any).env.NEXT_PUBLIC_USE_SIMULATED_GOOGLE === 'true';
 
-    // Fallback to simulation if Google SDK is blocked by adblocker, local hotspot IPs, or forced via env configuration
     if (!isGoogleSupported || !google || forceSimulated) {
-      console.warn("Google SDK not supported, blocked by adblocker, or simulation forced. Running high-fidelity Google Login simulation.");
+      console.warn("Google SDK not supported simulation triggered.");
       setLoading(true);
       
       setTimeout(async () => {
@@ -226,13 +226,11 @@ export default function LandingPage() {
 
           setLoading(true);
           try {
-            // Securely retrieve the user's Google Account profile data
             const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
             });
             const profile = userInfoRes.data;
 
-            // Submit token and user details to backend Google login route
             const res = await api.post('/auth/google', {
               name: profile.name,
               email: profile.email,
@@ -266,7 +264,7 @@ export default function LandingPage() {
     switch (index) {
       case 0:
         return (
-          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[220px] lg:h-[220px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
+          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[260px] lg:h-[260px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
             <circle cx="100" cy="100" r="80" fill="#E8F5E9" />
             <path d="M70 60h20v25H70z" fill="#90CAF9" />
             <circle cx="80" cy="55" r="10" fill="#E3F2FD" />
@@ -286,7 +284,7 @@ export default function LandingPage() {
         );
       case 1:
         return (
-          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[220px] lg:h-[220px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
+          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[260px] lg:h-[260px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
             <circle cx="100" cy="100" r="80" fill="#E8F5E9" />
             <rect x="50" y="55" width="100" height="90" rx="10" fill="white" stroke="#C8E6C9" strokeWidth="4" />
             <rect x="50" y="55" width="100" height="25" rx="6" fill="#2E7D32" />
@@ -307,7 +305,7 @@ export default function LandingPage() {
         );
       case 2:
         return (
-          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[220px] lg:h-[220px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
+          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[260px] lg:h-[260px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
             <circle cx="100" cy="100" r="80" fill="#E8F5E9" />
             <path d="M80 50c3-10 10-15 15-5s-3 35-3 35" stroke="#FFA726" strokeWidth="18" strokeLinecap="round" fill="none" />
             <path d="M110 52l12-15 4 4-12 15" stroke="#FF7043" strokeWidth="8" strokeLinecap="round" fill="none" />
@@ -326,7 +324,7 @@ export default function LandingPage() {
       case 3:
       default:
         return (
-          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[220px] lg:h-[220px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
+          <svg className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[260px] lg:h-[260px] select-none mx-auto transition-all duration-300" viewBox="0 0 200 200" fill="none">
             <circle cx="100" cy="100" r="80" fill="#E8F5E9" />
             <rect x="65" y="40" width="70" height="120" rx="14" fill="#37474F" stroke="#2E7D32" strokeWidth="4" />
             <rect x="70" y="45" width="60" height="110" rx="10" fill="white" />
@@ -343,12 +341,428 @@ export default function LandingPage() {
     }
   };
 
+  // Centralized Auth Form Content
+  const renderAuthForms = () => {
+    return (
+      <div className="flex-1 flex flex-col justify-between h-full">
+        {/* Back button header */}
+        <div className="flex items-center justify-between h-8 select-none mb-6">
+          <button 
+            onClick={() => {
+              if (authMode === 'login') setAuthMode('none');
+              else if (authMode === 'register') setAuthMode('login');
+              else setAuthMode('login');
+            }}
+            className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+          >
+            <ChevronLeft className="w-4.5 h-4.5 text-slate-800 dark:text-zinc-200" />
+          </button>
+          <h3 className="text-xs font-black text-slate-800 dark:text-zinc-200 uppercase tracking-widest">
+            {authMode === 'login' ? 'Welcome Back' : authMode === 'register' ? 'Create Account' : 'Security Check'}
+          </h3>
+          <div className="w-8" />
+        </div>
+
+        {errors.form && (
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900 text-red-600 dark:text-red-400 p-3.5 rounded-2xl text-[10px] font-bold mb-4 select-none">
+            {errors.form}
+          </div>
+        )}
+        {successMsg && (
+          <div className="bg-emerald-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900 text-primary dark:text-green-400 p-3.5 rounded-2xl text-[10px] font-bold mb-4 select-none">
+            {successMsg}
+          </div>
+        )}
+
+        {/* LOGIN FORM */}
+        {authMode === 'login' && (
+          <form onSubmit={handleLogin} className="flex-1 flex flex-col justify-between">
+            <div className="space-y-4">
+              {/* Social login */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full py-3.5 bg-white dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-750 rounded-2xl text-xs font-extrabold text-slate-700 dark:text-zinc-250 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] transition-transform"
+              >
+                <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22c-.87-2.6-2.87-4.53-5.84-4.53z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-slate-150 dark:border-zinc-800"></div>
+                <span className="flex-shrink mx-4 text-[10px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">or</span>
+                <div className="flex-grow border-t border-slate-150 dark:border-zinc-800"></div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="user@gmail.com"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Password</label>
+                  <button 
+                    type="button"
+                    onClick={() => setAuthMode('forgot')}
+                    className="text-[10px] font-bold text-[#2E7D32] dark:text-green-400 hover:underline cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>LOG IN</span>}
+              </button>
+
+              <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold">
+                Don't have an account?{' '}
+                <button 
+                  type="button" 
+                  onClick={() => setAuthMode('register')}
+                  className="text-[#2E7D32] dark:text-green-400 hover:underline cursor-pointer"
+                >
+                  Sign Up
+                </button>
+              </p>
+            </div>
+          </form>
+        )}
+
+        {/* REGISTER FORM */}
+        {authMode === 'register' && (
+          <form onSubmit={handleRegister} className="flex-1 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="john@example.com"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>CREATE ACCOUNT</span>}
+              </button>
+
+              <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold">
+                Already have an account?{' '}
+                <button 
+                  type="button" 
+                  onClick={() => setAuthMode('login')}
+                  className="text-[#2E7D32] dark:text-green-400 hover:underline cursor-pointer"
+                >
+                  Log In
+                </button>
+              </p>
+            </div>
+          </form>
+        )}
+
+        {/* OTP FORM */}
+        {authMode === 'otp' && (
+          <form onSubmit={handleVerifyOTP} className="flex-1 flex flex-col justify-between">
+            <div className="space-y-4">
+              <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold text-center leading-relaxed">
+                Enter the 6-digit confirmation code we sent to your email to authenticate.
+              </p>
+              
+              <div className="flex justify-between gap-1.5 py-4">
+                {otpCode.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    id={`otp-${idx}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const nextCode = [...otpCode];
+                      nextCode[idx] = val;
+                      setOtpCode(nextCode);
+                      
+                      if (val && idx < 5) {
+                        document.getElementById(`otp-${idx + 1}`)?.focus();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Backspace' && !otpCode[idx] && idx > 0) {
+                        document.getElementById(`otp-${idx - 1}`)?.focus();
+                      }
+                    }}
+                    className="w-11 h-12 rounded-xl bg-white dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 text-center text-sm font-black focus:outline-none focus:border-[#2E7D32] text-slate-800 dark:text-zinc-100"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>VERIFY CODE</span>}
+            </button>
+          </form>
+        )}
+
+        {/* FORGOT PASSWORD FORM */}
+        {authMode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="flex-1 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="user@gmail.com"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>SEND RESET CODE</span>}
+            </button>
+          </form>
+        )}
+
+        {/* RESET PASSWORD FORM */}
+        {authMode === 'reset' && (
+          <form onSubmit={handleResetPassword} className="flex-1 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">New Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>UPDATE PASSWORD</span>}
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="h-[100dvh] w-screen overflow-hidden bg-slate-100 dark:bg-zinc-950 flex items-center justify-center py-0 lg:py-3 font-sans select-none">
-      
-      {/* High-Fidelity Smartphone Device Frame (Pure White background to match mockup) */}
-      <div className="w-full h-full lg:h-[780px] lg:max-h-[84vh] lg:aspect-[360/780] lg:w-auto lg:rounded-[36px] lg:border-[10px] lg:border-slate-900 lg:dark:border-zinc-800 lg:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] relative overflow-hidden flex flex-col bg-white dark:bg-zinc-900 transition-colors">
-        
+    <div className="h-[100dvh] w-screen overflow-hidden bg-slate-150 dark:bg-zinc-950 font-sans select-none flex items-center justify-center">
+      {/* 1. Desktop Responsive View Layout (screens >= lg) */}
+      <div className="hidden lg:flex w-full h-full bg-white dark:bg-zinc-900 overflow-hidden">
+        {/* Left Presentation Pane */}
+        <div className="w-1/2 bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] relative flex flex-col justify-between p-16 text-white overflow-hidden shadow-[20px_0_40px_-20px_rgba(0,0,0,0.15)]">
+          {/* Ambient light effects */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-emerald-600/20 blur-3xl -mr-32 -mt-32 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-green-950/40 blur-3xl -ml-24 -mb-24 pointer-events-none" />
+
+          {/* SaaS Header */}
+          <div className="z-10 flex items-center gap-2">
+            <div className="p-2 bg-white/10 rounded-xl">
+              <Sparkles className="w-6 h-6 text-emerald-300" />
+            </div>
+            <div>
+              <h1 className="text-lg font-black tracking-wider uppercase leading-none">Grocery Expiry</h1>
+              <span className="text-[10px] font-bold text-emerald-150 uppercase tracking-widest mt-0.5 block">SaaS Platform</span>
+            </div>
+          </div>
+
+          {/* Central graphic */}
+          <div className="z-10 flex-grow flex flex-col justify-center items-center py-10">
+            <motion.div 
+              key={activeSlide}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="scale-125 mb-8"
+            >
+              {renderIllustration(activeSlide)}
+            </motion.div>
+            
+            <div className="text-center max-w-sm space-y-2.5">
+              <h2 className="text-2xl font-black leading-tight tracking-tight">
+                {activeSlide === 0 
+                  ? 'Grocery Expiry Date Tracking' 
+                  : activeSlide === 1 
+                  ? 'Never Miss an Expiry Date' 
+                  : activeSlide === 2 
+                  ? 'Reduce Waste, Save Money' 
+                  : 'Stay Organized Always'}
+              </h2>
+              <p className="text-xs text-emerald-100/80 font-semibold leading-relaxed">
+                {activeSlide === 0 
+                  ? 'Track expiry dates, reduce waste and keep your groceries fresh.'
+                  : activeSlide === 1
+                  ? 'Get reminders before your groceries expire.'
+                  : activeSlide === 2
+                  ? 'Use what you have and avoid unnecessary waste.'
+                  : 'Keep track of all your groceries in one place.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Onboarding controls */}
+          <div className="z-10 flex justify-between items-center">
+            {/* Indicators */}
+            <div className="flex gap-2">
+              {[0, 1, 2, 3].map((idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveSlide(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activeSlide === idx ? 'bg-white w-6' : 'bg-white/40 w-2 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Slider navigation */}
+            <div className="flex gap-3">
+              {activeSlide > 0 && (
+                <button
+                  onClick={() => setActiveSlide(activeSlide - 1)}
+                  className="px-4 py-2 border border-white/20 hover:border-white/40 hover:bg-white/5 text-xs font-bold rounded-xl active:scale-95 transition-all"
+                >
+                  Back
+                </button>
+              )}
+              {activeSlide < 3 ? (
+                <button
+                  onClick={() => setActiveSlide(activeSlide + 1)}
+                  className="px-5 py-2 bg-white text-[#2E7D32] hover:bg-emerald-50 text-xs font-black rounded-xl shadow-md active:scale-95 transition-all"
+                >
+                  Next
+                </button>
+              ) : (
+                authMode === 'none' && (
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className="px-5 py-2 bg-white text-[#2E7D32] hover:bg-emerald-50 text-xs font-black rounded-xl shadow-md active:scale-95 transition-all"
+                  >
+                    Get Started
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Form Card Pane */}
+        <div className="w-1/2 flex items-center justify-center bg-slate-50 dark:bg-zinc-950 p-16 overflow-y-auto">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-150 dark:border-zinc-800/80 rounded-3xl p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none flex flex-col min-h-[500px]">
+            {authMode === 'none' ? (
+              <div className="flex-grow flex flex-col justify-between text-center py-6">
+                <div className="space-y-4">
+                  <div className="inline-flex p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-950/30 rounded-2xl text-[#2E7D32] dark:text-green-400 mb-2">
+                    <Sparkles className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-zinc-100 tracking-tight">Manage Your Groceries Smartly</h3>
+                  <p className="text-xs text-slate-400 dark:text-zinc-500 font-semibold max-w-xs mx-auto leading-relaxed">
+                    Access real-time notification alerts, AI-powered shelf prediction engines, and smart recipe builders.
+                  </p>
+                </div>
+                <div className="space-y-3 mt-8">
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl cursor-pointer active:scale-[0.98] transition-all uppercase tracking-wider text-center"
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => setAuthMode('register')}
+                    className="w-full py-4 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[#2E7D32] dark:text-green-400 hover:bg-slate-50 dark:hover:bg-zinc-850 text-xs font-black rounded-2xl cursor-pointer active:scale-[0.98] transition-all uppercase tracking-wider text-center"
+                  >
+                    Create Account
+                  </button>
+                </div>
+              </div>
+            ) : (
+              renderAuthForms()
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Mobile View Layout (screens < lg) - EXACTLY the original centered smartphone frame */}
+      <div className="flex lg:hidden w-full h-full lg:h-[780px] lg:max-h-[84vh] lg:aspect-[360/780] lg:w-auto lg:rounded-[36px] lg:border-[10px] lg:border-slate-900 lg:dark:border-zinc-800 lg:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] relative overflow-hidden flex flex-col bg-white dark:bg-zinc-900 transition-colors">
         {/* Soft, Organic Decorative Green Blobs (matching screens 1-4 background) */}
         {authMode === 'none' && (
           <>
@@ -364,8 +778,7 @@ export default function LandingPage() {
         )}
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col px-5 py-4 pb-5 relative overflow-hidden justify-between z-10">
-          
+        <div className="flex-grow min-h-0 relative overflow-hidden flex flex-col px-5 py-4 pb-5 justify-between z-10">
           <AnimatePresence mode="wait">
             {authMode === 'none' ? (
               <motion.div
@@ -380,7 +793,7 @@ export default function LandingPage() {
                   {activeSlide > 0 && (
                     <button 
                       onClick={() => setAuthMode('login')}
-                      className="text-xs font-bold text-slate-800 dark:text-zinc-300 hover:text-primary cursor-pointer active:scale-95 transition-transform"
+                      className="text-xs font-bold text-slate-800 dark:text-zinc-300 hover:text-[#2E7D32] cursor-pointer active:scale-95 transition-transform"
                     >
                       Skip
                     </button>
@@ -389,14 +802,14 @@ export default function LandingPage() {
 
                 {/* Vector Illustration & Left-Aligned Text Content */}
                 <div className="flex-grow flex flex-col justify-center my-auto min-h-0">
-                  {/* Central Graphic (centered) */}
+                  {/* Central Graphic */}
                   <div className="flex justify-center items-center w-full py-1 min-h-0">
-                    <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] lg:w-[240px] lg:h-[240px] flex items-center justify-center mx-auto transition-all duration-300">
+                    <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] flex items-center justify-center mx-auto">
                       {renderIllustration(activeSlide)}
                     </div>
                   </div>
                   
-                  {/* Title and Subtext (Left-Aligned!) */}
+                  {/* Title and Subtext */}
                   <div className="w-full px-2 mt-3 space-y-1.5 text-left">
                     {activeSlide === 0 ? (
                       <h2 
@@ -431,15 +844,14 @@ export default function LandingPage() {
                         ? 'Get reminders before your groceries expire.'
                         : activeSlide === 2
                         ? 'Use what you have and avoid unnecessary waste.'
-                        : 'Keep track of all your groceries in one place.'
-                      }
+                        : 'Keep track of all your groceries in one place.'}
                     </p>
                   </div>
                 </div>
 
                 {/* Onboarding Bottom Indicators & Buttons */}
                 <div className="flex flex-col items-center gap-4 mt-4 sm:mt-6 select-none">
-                  {/* Center Dot Indicators (Slide 1 is hidden matching screen 1) */}
+                  {/* Center Dot Indicators */}
                   <div className="flex gap-2 h-2 justify-center items-center">
                     {activeSlide > 0 && [0, 1, 2].map((idx) => (
                       <div 
@@ -476,292 +888,9 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             ) : (
-              <motion.div
-                key="auth"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col"
-              >
-                {/* Back button header */}
-                <div className="flex items-center justify-between h-8 select-none mb-6">
-                  <button 
-                    onClick={() => {
-                      if (authMode === 'login') setAuthMode('none');
-                      else if (authMode === 'register') setAuthMode('login');
-                      else setAuthMode('login');
-                    }}
-                    className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
-                  >
-                    <ChevronLeft className="w-4.5 h-4.5 text-slate-800 dark:text-zinc-200" />
-                  </button>
-                  <h3 className="text-xs font-black text-slate-800 dark:text-zinc-200 uppercase tracking-widest">
-                    {authMode === 'login' ? 'Welcome Back' : authMode === 'register' ? 'Create Account' : 'Security Check'}
-                  </h3>
-                  <div className="w-8" />
-                </div>
-
-                {errors.form && (
-                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900 text-red-600 dark:text-red-400 p-3.5 rounded-2xl text-[10px] font-bold mb-4 select-none">
-                    {errors.form}
-                  </div>
-                )}
-                {successMsg && (
-                  <div className="bg-emerald-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900 text-primary dark:text-green-400 p-3.5 rounded-2xl text-[10px] font-bold mb-4 select-none">
-                    {successMsg}
-                  </div>
-                )}
-
-                {/* LOGIN FORM */}
-                {authMode === 'login' && (
-                  <form onSubmit={handleLogin} className="flex-1 flex flex-col justify-between">
-                    <div className="space-y-4">
-                      {/* Social login */}
-                      <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        className="w-full py-3.5 bg-white dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 hover:bg-slate-50 rounded-2xl text-xs font-extrabold text-slate-700 dark:text-zinc-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] transition-transform"
-                      >
-                        <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22c-.87-2.6-2.87-4.53-5.84-4.53z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <span>Continue with Google</span>
-                      </button>
-
-                      <div className="relative flex py-2 items-center">
-                        <div className="flex-grow border-t border-slate-150 dark:border-zinc-800"></div>
-                        <span className="flex-shrink mx-4 text-[10px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">or</span>
-                        <div className="flex-grow border-t border-slate-150 dark:border-zinc-800"></div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="user@gmail.com"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Password</label>
-                          <button 
-                            type="button"
-                            onClick={() => setAuthMode('forgot')}
-                            className="text-[10px] font-bold text-primary dark:text-green-400 hover:underline cursor-pointer"
-                          >
-                            Forgot Password?
-                          </button>
-                        </div>
-                        <input
-                          type="password"
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-855 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 pt-6">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
-                      >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>LOG IN</span>}
-                      </button>
-
-                      <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold">
-                        Don't have an account?{' '}
-                        <button 
-                          type="button" 
-                          onClick={() => setAuthMode('register')}
-                          className="text-primary dark:text-green-400 hover:underline cursor-pointer"
-                        >
-                          Sign Up
-                        </button>
-                      </p>
-                    </div>
-                  </form>
-                )}
-
-                {/* REGISTER FORM */}
-                {authMode === 'register' && (
-                  <form onSubmit={handleRegister} className="flex-1 flex flex-col justify-between">
-                    <div className="space-y-3.5">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Full Name</label>
-                        <input
-                          type="text"
-                          required
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="John Doe"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="john@example.com"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Password</label>
-                        <input
-                          type="password"
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 pt-6">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
-                      >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>CREATE ACCOUNT</span>}
-                      </button>
-
-                      <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold">
-                        Already have an account?{' '}
-                        <button 
-                          type="button" 
-                          onClick={() => setAuthMode('login')}
-                          className="text-primary dark:text-green-400 hover:underline cursor-pointer"
-                        >
-                          Log In
-                        </button>
-                      </p>
-                    </div>
-                  </form>
-                )}
-
-                {/* OTP FORM */}
-                {authMode === 'otp' && (
-                  <form onSubmit={handleVerifyOTP} className="flex-1 flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold text-center leading-relaxed">
-                        Enter the 6-digit confirmation code we sent to your email to authenticate.
-                      </p>
-                      
-                      <div className="flex justify-between gap-1.5 py-4">
-                        {otpCode.map((digit, idx) => (
-                          <input
-                            key={idx}
-                            id={`otp-${idx}`}
-                            type="text"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const nextCode = [...otpCode];
-                              nextCode[idx] = val;
-                              setOtpCode(nextCode);
-                              
-                              if (val && idx < 5) {
-                                document.getElementById(`otp-${idx + 1}`)?.focus();
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Backspace' && !otpCode[idx] && idx > 0) {
-                                document.getElementById(`otp-${idx - 1}`)?.focus();
-                              }
-                            }}
-                            className="w-11 h-12 rounded-xl bg-white dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 text-center text-sm font-black focus:outline-none focus:border-primary text-slate-800 dark:text-zinc-100"
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>VERIFY CODE</span>}
-                    </button>
-                  </form>
-                )}
-
-                {/* FORGOT PASSWORD FORM */}
-                {authMode === 'forgot' && (
-                  <form onSubmit={handleForgotPassword} className="flex-1 flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="user@gmail.com"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>SEND RESET CODE</span>}
-                    </button>
-                  </form>
-                )}
-
-                {/* RESET PASSWORD FORM */}
-                {authMode === 'reset' && (
-                  <form onSubmit={handleResetPassword} className="flex-1 flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">New Password</label>
-                        <input
-                          type="password"
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-4.5 py-3.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-150 dark:border-zinc-700 text-xs font-semibold focus:outline-none focus:border-primary"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-4 bg-[#2E7D32] hover:bg-[#25632A] text-white text-xs font-black rounded-2xl shadow-lg shadow-green-500/10 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>UPDATE PASSWORD</span>}
-                    </button>
-                  </form>
-                )}
-              </motion.div>
+              renderAuthForms()
             )}
           </AnimatePresence>
-
         </div>
 
         {/* Mock Home Indicator for smartphone shell */}
