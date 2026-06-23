@@ -25,14 +25,38 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Generate Android Template and Wrappers
+      - name: Recreate Android Project Template
         run: |
-          flutter create --platforms=android --org com.groceryexpirytracker clean_app
-          cp -r clean_app/android/gradlew mobile/android/
-          cp -r clean_app/android/gradlew.bat mobile/android/
-          cp -r clean_app/android/gradle mobile/android/
-          mkdir -p mobile/android/app/src/main/res
-          cp -r clean_app/android/app/src/main/res/mipmap-* mobile/android/app/src/main/res/
+          cd mobile
+          flutter create --platforms=android --org com.groceryexpirytracker --project-name mobile .
+
+      - name: Patch Android Project Configuration
+        run: |
+          cd mobile
+          python -c "
+          import os
+          settings_path = 'android/settings.gradle'
+          if os.path.exists(settings_path):
+              with open(settings_path, 'r') as f:
+                  content = f.read()
+              if 'com.google.gms.google-services' not in content:
+                  lines = content.split('\n')
+                  for i, line in enumerate(lines):
+                      if 'plugins {' in line:
+                          lines.insert(i + 1, '    id \"com.google.gms.google-services\" version \"4.3.15\" apply false')
+                          break
+                  with open(settings_path, 'w') as f:
+                      f.write('\n'.join(lines))
+
+          build_gradle_path = 'android/app/build.gradle'
+          if os.path.exists(build_gradle_path):
+              with open(build_gradle_path, 'a') as f:
+                  f.write(\"\n\nif (file('google-services.json').exists()) {\n    apply plugin: 'com.google.gms.google-services'\n}\n\")
+          "
+
+      - name: Apply Custom AndroidManifest
+        run: |
+          cp mobile/android_custom/AndroidManifest.xml mobile/android/app/src/main/AndroidManifest.xml
 
       - name: Install Dependencies
         run: |
