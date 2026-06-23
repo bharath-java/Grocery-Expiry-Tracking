@@ -191,9 +191,9 @@ class _LandingViewState extends State<LandingView> {
       body: Stack(
         children: [
           // Background Blobs
-          _buildBlob(-40, -40, 200, Colors.emerald),
+          _buildBlob(-40, -40, 200, Colors.green),
           _buildBlob(-20, MediaQuery.of(context).size.width - 150, 180, Colors.green),
-          _buildBlob(screenHeight - 180, MediaQuery.of(context).size.width - 160, 220, Colors.emerald),
+          _buildBlob(screenHeight - 180, MediaQuery.of(context).size.width - 160, 220, Colors.green),
           _buildBlob(screenHeight - 160, -40, 180, Colors.green),
 
           SafeArea(

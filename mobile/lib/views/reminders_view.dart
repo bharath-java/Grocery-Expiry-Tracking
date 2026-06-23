@@ -153,7 +153,7 @@ class _RemindersViewState extends State<RemindersView> with SingleTickerProvider
               child: Wrap(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'Reminder Settings',
@@ -212,7 +212,6 @@ class _RemindersViewState extends State<RemindersView> with SingleTickerProvider
                       }
                     },
                     contentPadding: EdgeInsets.zero,
-                    controlType: ListTileControlType.leading,
                   ),
                   CheckboxListTile(
                     title: const Text('3 Days Before', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
@@ -226,7 +225,6 @@ class _RemindersViewState extends State<RemindersView> with SingleTickerProvider
                       }
                     },
                     contentPadding: EdgeInsets.zero,
-                    controlType: ListTileControlType.leading,
                   ),
                   CheckboxListTile(
                     title: const Text('1 Day Before', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
@@ -240,7 +238,6 @@ class _RemindersViewState extends State<RemindersView> with SingleTickerProvider
                       }
                     },
                     contentPadding: EdgeInsets.zero,
-                    controlType: ListTileControlType.leading,
                   ),
                   CheckboxListTile(
                     title: const Text('Same Day (Expiry)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
@@ -254,7 +251,6 @@ class _RemindersViewState extends State<RemindersView> with SingleTickerProvider
                       }
                     },
                     contentPadding: EdgeInsets.zero,
-                    controlType: ListTileControlType.leading,
                   ),
                   const SizedBox(height: 24),
                 ],

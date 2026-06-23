@@ -224,7 +224,7 @@ class DashboardHomeTab extends StatelessWidget {
 
           // 3. Flexible Expiring Soon List Section
           Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'EXPIRING SOON',
