@@ -55,6 +55,28 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
     _fetchItems();
   }
 
+  String _getCategoryEmoji(String category) {
+    switch (category) {
+      case 'Dairy & Eggs':
+        return '🥛';
+      case 'Fruits & Vegetables':
+        return '🍎';
+      case 'Bakery':
+        return '🍞';
+      case 'Meat & Fish':
+        return '🥩';
+      case 'Pantry':
+        return '🥫';
+      case 'Beverages':
+        return '🥤';
+      case 'Snacks':
+        return '🍪';
+      case 'Others':
+      default:
+        return '📦';
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -67,12 +89,14 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Groceries', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('All Groceries', style: TextStyle(fontWeight: FontWeight.w900)),
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.primary,
-          labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Colors.grey,
+          indicatorColor: const Color(0xFF2E7D32),
+          labelColor: const Color(0xFF2E7D32),
+          unselectedLabelColor: const Color(0xFF94A3B8),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
           tabs: const [
             Tab(text: 'Active List'),
             Tab(text: 'Archived Storage'),
@@ -83,10 +107,10 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
         children: [
           // Sorting Chips Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Row(
               children: [
-                const Text('Sort by:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Sort by:', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Color(0xFF64748B))),
                 const SizedBox(width: 8),
                 _buildSortChip('Expiry Date', 'expiryDate'),
                 const SizedBox(width: 8),
@@ -96,7 +120,7 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
           
           Expanded(
             child: TabBarView(
@@ -120,9 +144,9 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.12) : Colors.transparent,
+          color: isSelected ? const Color(0xFF2E7D32).withOpacity(0.08) : Colors.transparent,
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.withOpacity(0.3),
+            color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFFCBD5E1),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(20),
@@ -132,17 +156,17 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey[600],
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
               ),
             ),
             if (isSelected) ...[
               const SizedBox(width: 4),
               Icon(
                 _order == 'asc' ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 12,
-                color: Theme.of(context).colorScheme.primary,
+                size: 10,
+                color: const Color(0xFF2E7D32),
               ),
             ],
           ],
@@ -153,7 +177,7 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
 
   Widget _buildList(List<GroceryItem> list, bool loading, bool isArchivedTab) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32)));
     }
 
     if (list.isEmpty) {
@@ -161,23 +185,24 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.withOpacity(0.5)),
+            const Text('📦', style: TextStyle(fontSize: 48)),
             const SizedBox(height: 16),
             Text(
-              isArchivedTab ? 'No archived items.' : 'No active items.',
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
+              isArchivedTab ? 'NO ARCHIVED ITEMS' : 'NO ACTIVE ITEMS',
+              style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
             ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: list.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = list[index];
-        final formattedDate = DateFormat('MMM dd, yyyy').format(item.expiryDate);
+        final formattedDate = DateFormat('d MMM yyyy').format(item.expiryDate);
         
         Color statusColor;
         if (item.status == 'Expired') {
@@ -188,65 +213,69 @@ class _AllGroceriesViewState extends State<AllGroceriesView> with SingleTickerPr
           statusColor = AppColors.statusFresh;
         }
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 0,
-          color: Theme.of(context).cardColor,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                // Product Thumbnail
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.cookie, color: statusColor),
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+          ),
+          child: Row(
+            children: [
+              // Product Thumbnail Emoji
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                const SizedBox(width: 16),
-                // Name & Dates
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.itemName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Expires: $formattedDate',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
+                alignment: Alignment.center,
+                child: Text(
+                  _getCategoryEmoji(item.category),
+                  style: const TextStyle(fontSize: 20),
                 ),
-                const SizedBox(width: 8),
-                // Quick restore / archive action buttons
-                if (isArchivedTab)
-                  IconButton(
-                    icon: const Icon(Icons.unarchive, color: Colors.blue),
-                    onPressed: () async {
-                      final gp = Provider.of<GroceryProvider>(context, listen: false);
-                      await gp.restoreGrocery(item.id);
-                    },
-                    tooltip: 'Restore',
-                  )
-                else
-                  IconButton(
-                    icon: const Icon(Icons.archive_outlined, color: Colors.grey),
-                    onPressed: () async {
-                      final gp = Provider.of<GroceryProvider>(context, listen: false);
-                      await gp.archiveGrocery(item.id);
-                    },
-                    tooltip: 'Archive',
-                  ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 14),
+              // Name & Dates
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.itemName,
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Expires: $formattedDate • Qty: ${item.quantity}',
+                      style: const TextStyle(fontSize: 10.5, color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Quick restore / archive action buttons
+              if (isArchivedTab)
+                IconButton(
+                  icon: const Icon(Icons.unarchive_outlined, color: Colors.green, size: 20),
+                  onPressed: () async {
+                    final gp = Provider.of<GroceryProvider>(context, listen: false);
+                    await gp.restoreGrocery(item.id);
+                  },
+                  tooltip: 'Restore',
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.archive_outlined, color: Colors.grey, size: 20),
+                  onPressed: () async {
+                    final gp = Provider.of<GroceryProvider>(context, listen: false);
+                    await gp.archiveGrocery(item.id);
+                  },
+                  tooltip: 'Archive',
+                ),
+            ],
           ),
         );
       },

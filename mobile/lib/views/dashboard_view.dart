@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/grocery_provider.dart';
-import '../../models/grocery_item.dart';
-import '../../core/constants/colors.dart';
-import 'package:intl/intl.dart';
+import 'tabs/dashboard_home_tab.dart';
+import 'categories_view.dart';
+import 'reminders_view.dart';
+import 'profile_view.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -14,8 +15,7 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  final _searchController = TextEditingController();
-  String _selectedFilter = 'All';
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -25,245 +25,88 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged(String text) {
-    Provider.of<GroceryProvider>(context, listen: false).fetchGroceries(
-      search: text,
-      status: _selectedFilter == 'All' ? null : _selectedFilter,
-    );
-  }
-
-  void _selectFilter(String filter) {
-    setState(() {
-      _selectedFilter = filter;
-    });
-    Provider.of<GroceryProvider>(context, listen: false).fetchGroceries(
-      search: _searchController.text.isNotEmpty ? _searchController.text : null,
-      status: filter == 'All' ? null : filter,
-    );
+  // Define screens list
+  List<Widget> _getScreens() {
+    return [
+      DashboardHomeTab(
+        onNavigateToReminders: () {
+          setState(() {
+            _currentIndex = 3;
+          });
+        },
+        onNavigateToAllGroceries: () {
+          Navigator.pushNamed(context, '/all-groceries');
+        },
+      ),
+      const CategoriesView(),
+      const SizedBox.shrink(), // Placeholder for Central FAB
+      const RemindersView(),
+      const ProfileView(),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final groceryProvider = Provider.of<GroceryProvider>(context);
-
-    // Filtered lists local checks
-    final List<GroceryItem> listToShow = groceryProvider.groceries;
+    final screens = _getScreens();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grocery Dashboard', style: TextStyle(fontWeight: FontWeight.w900)),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.auto_awesome, color: Colors.purple),
-            onPressed: () {
-              Navigator.pushNamed(context, '/ai-assistant');
-            },
-            tooltip: 'AI Assistant',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              groceryProvider.fetchGroceries();
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            UserAccountsDrawerHeader(
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                child: Text(
-                  authProvider.user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
-                ),
-              ),
-              accountName: Text(authProvider.user?.name ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold)),
-              accountEmail: Text(authProvider.user?.email ?? 'user@gmail.com'),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard_outlined),
-              title: const Text('Dashboard'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.list_alt_outlined),
-              title: const Text('All Groceries'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/all-groceries');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.category_outlined),
-              title: const Text('Categories'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/categories');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_active_outlined),
-              title: const Text('Reminders & Alerts'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/reminders');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.psychology_outlined, color: Colors.purple),
-              title: const Text('Smart AI Assistants'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/ai-assistant');
-              },
-            ),
-            const Spacer(),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                await authProvider.logout();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false);
-                }
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
+      body: SafeArea(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: screens,
         ),
       ),
-      body: Column(
-        children: [
-          // 1. Counter Statistics Card Widget
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                _buildStatCard('Expired', groceryProvider.expiredCount, AppColors.statusExpired),
-                const SizedBox(width: 8),
-                _buildStatCard('Expiring Soon', groceryProvider.expiringSoonCount, AppColors.statusExpiringSoon),
-                const SizedBox(width: 8),
-                _buildStatCard('Fresh', groceryProvider.goodCount, AppColors.statusFresh),
-              ],
-            ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          border: const Border(
+            top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5),
           ),
-
-          // 2. Search & Filter Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search groceries...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-              ),
-            ),
-          ),
-
-          // 3. Status Filters Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: ['All', 'Expired', 'Expiring Soon', 'Fresh'].map((filter) {
-                final isSelected = _selectedFilter == filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (_) => _selectFilter(filter),
-                    selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                    checkmarkColor: Theme.of(context).colorScheme.primary,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // 4. Grocery List View
-          Expanded(
-            child: groceryProvider.loading
-                ? const Center(child: CircularProgressIndicator())
-                : listToShow.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.cookie, size: 64, color: Colors.grey.withOpacity(0.5)),
-                            const SizedBox(height: 16),
-                            const Text('No groceries found.', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        itemCount: listToShow.length,
-                        itemBuilder: (context, index) {
-                          final item = listToShow[index];
-                          return _buildGroceryListItem(item);
-                        },
-                      ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/add-grocery');
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home_filled, Icons.home_outlined, 'Home'),
+            _buildNavItem(1, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Categories'),
+            _buildCentralFAB(),
+            _buildNavItem(3, Icons.notifications_rounded, Icons.notifications_none_rounded, 'Reminders'),
+            _buildNavItem(4, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatCard(String label, int count, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.15), width: 1),
-        ),
+  Widget _buildNavItem(int index, IconData selectedIcon, IconData unselectedIcon, String label) {
+    final isSelected = _currentIndex == index;
+    final color = isSelected ? const Color(0xFF2E7D32) : const Color(0xFF94A3B8);
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              count.toString(),
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: color),
+            Icon(
+              isSelected ? selectedIcon : unselectedIcon,
+              color: color,
+              size: 24,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               label,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color.withOpacity(0.8)),
-              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                color: color,
+              ),
             ),
           ],
         ),
@@ -271,123 +114,33 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget _buildGroceryListItem(GroceryItem item) {
-    Color statusColor;
-    if (item.status == 'Expired') {
-      statusColor = AppColors.statusExpired;
-    } else if (item.status == 'Expiring Soon') {
-      statusColor = AppColors.statusExpiringSoon;
-    } else {
-      statusColor = AppColors.statusFresh;
-    }
-
-    final formattedExpiry = DateFormat('MMM dd, yyyy').format(item.expiryDate);
-    final daysLeft = item.daysRemaining;
-
-    String countdownText;
-    if (daysLeft < 0) {
-      countdownText = 'Expired';
-    } else if (daysLeft == 0) {
-      countdownText = 'Expires Today';
-    } else if (daysLeft == 1) {
-      countdownText = 'Expires Tomorrow';
-    } else {
-      countdownText = 'Expires in $daysLeft days';
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          // Open Edit Screen directly
-          Navigator.pushNamed(context, '/add-grocery', arguments: item);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              // Category indicator icon bubble
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getCategoryIcon(item.category),
-                  color: statusColor,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Name and expiry dates
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.itemName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Expiry: $formattedExpiry',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              // Quantity & Days Countdown
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    item.quantity,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      countdownText,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+  Widget _buildCentralFAB() {
+    return InkWell(
+      onTap: () {
+        // Direct route push to add grocery to keep it simple and 100% bug-free
+        Navigator.pushNamed(context, '/add-grocery');
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: const BoxDecoration(
+          color: Color(0xFF2E7D32),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x202E7D32),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add, // fallback or clean Plus icon
+          color: Colors.white,
+          size: 20,
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Dairy & Eggs':
-        return Icons.egg_outlined;
-      case 'Fruits & Vegetables':
-        return Icons.eco_outlined;
-      case 'Bakery':
-        return Icons.bakery_dining_outlined;
-      case 'Meat & Fish':
-        return Icons.kebab_dining_outlined;
-      case 'Pantry':
-        return Icons.kitchen_outlined;
-      case 'Beverages':
-        return Icons.local_drink_outlined;
-      case 'Snacks':
-        return Icons.cookie_outlined;
-      default:
-        return Icons.shopping_basket_outlined;
-    }
   }
 }

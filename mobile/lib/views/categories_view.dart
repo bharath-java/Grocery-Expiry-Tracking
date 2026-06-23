@@ -15,21 +15,28 @@ class _CategoriesViewState extends State<CategoriesView> {
   String? _selectedCategory;
 
   final List<Map<String, dynamic>> _categoriesList = [
-    {'name': 'Dairy & Eggs', 'icon': Icons.egg_outlined, 'color': Colors.amber},
-    {'name': 'Fruits & Vegetables', 'icon': Icons.eco_outlined, 'color': Colors.green},
-    {'name': 'Bakery', 'icon': Icons.bakery_dining_outlined, 'color': Colors.brown},
-    {'name': 'Meat & Fish', 'icon': Icons.kebab_dining_outlined, 'color': Colors.red},
-    {'name': 'Pantry', 'icon': Icons.kitchen_outlined, 'color': Colors.teal},
-    {'name': 'Beverages', 'icon': Icons.local_drink_outlined, 'color': Colors.blue},
-    {'name': 'Snacks', 'icon': Icons.cookie_outlined, 'color': Colors.deepOrange},
-    {'name': 'Others', 'icon': Icons.shopping_basket_outlined, 'color': Colors.blueGrey},
+    {'name': 'Dairy & Eggs', 'emoji': '🥛', 'color': Colors.amber},
+    {'name': 'Fruits & Vegetables', 'emoji': '🍎', 'color': Colors.green},
+    {'name': 'Bakery', 'emoji': '🍞', 'color': Colors.brown},
+    {'name': 'Meat & Fish', 'emoji': '🥩', 'color': Colors.red},
+    {'name': 'Pantry', 'emoji': '🥫', 'color': Colors.teal},
+    {'name': 'Beverages', 'emoji': '🥤', 'color': Colors.blue},
+    {'name': 'Snacks', 'emoji': '🍪', 'color': Colors.deepOrange},
+    {'name': 'Others', 'emoji': '📦', 'color': Colors.blueGrey},
   ];
+
+  int _getDaysLeft(DateTime expiryDate) {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final expDate = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
+    final diff = expDate.difference(todayDate);
+    return diff.inDays;
+  }
 
   @override
   Widget build(BuildContext context) {
     final groceryProvider = Provider.of<GroceryProvider>(context);
 
-    // If a category is selected, show filtered list; otherwise show grid
     if (_selectedCategory != null) {
       final List<GroceryItem> filteredList = groceryProvider.groceries
           .where((e) => e.category == _selectedCategory)
@@ -37,7 +44,7 @@ class _CategoriesViewState extends State<CategoriesView> {
 
       return Scaffold(
         appBar: AppBar(
-          title: Text(_selectedCategory!),
+          title: Text(_selectedCategory!, style: const TextStyle(fontWeight: FontWeight.w900)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -46,36 +53,117 @@ class _CategoriesViewState extends State<CategoriesView> {
               });
             },
           ),
+          elevation: 0,
         ),
         body: filteredList.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.category_outlined, size: 64, color: Colors.grey.withOpacity(0.5)),
+                    Text('📂', style: TextStyle(fontSize: 48, color: Colors.grey.withOpacity(0.5))),
                     const SizedBox(height: 16),
-                    const Text('No items in this category.', style: TextStyle(color: Colors.grey)),
+                    const Text(
+                      'NO ACTIVE ITEMS',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.5),
+                    ),
                   ],
                 ),
               )
-            : ListView.builder(
+            : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: filteredList.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = filteredList[index];
-                  final formattedDate = DateFormat('MMM dd, yyyy').format(item.expiryDate);
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                    child: ListTile(
-                      title: Text(item.itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('Expiry: $formattedDate'),
-                      trailing: Text(item.quantity, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/add-grocery', arguments: item);
-                      },
+                  final formattedDate = DateFormat('d MMM yyyy').format(item.expiryDate);
+                  final daysLeft = _getDaysLeft(item.expiryDate);
+
+                  Color badgeColor = const Color(0xFF4CAF50);
+                  if (item.status == 'Expired') {
+                    badgeColor = const Color(0xFFEF5350);
+                  } else if (item.status == 'Expiring Soon') {
+                    badgeColor = const Color(0xFFFFA726);
+                  }
+
+                  String countdownText;
+                  if (daysLeft < 0) {
+                    countdownText = 'Expired';
+                  } else if (daysLeft == 0) {
+                    countdownText = 'Expires Today';
+                  } else if (daysLeft == 1) {
+                    countdownText = 'Tomorrow';
+                  } else {
+                    countdownText = '$daysLeft days';
+                  }
+
+                  return Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFF1F5F9)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.itemName,
+                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Expiry: $formattedDate • Qty: ${item.quantity}',
+                                    style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: badgeColor.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: badgeColor.withOpacity(0.2)),
+                                    ),
+                                    child: Text(
+                                      countdownText,
+                                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: badgeColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Actions
+                        IconButton(
+                          icon: const Icon(Icons.done, color: Colors.green, size: 20),
+                          onPressed: () async {
+                            final ok = await groceryProvider.archiveGrocery(item.id);
+                            if (ok && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Item marked as consumed.'), backgroundColor: Colors.green),
+                              );
+                            }
+                          },
+                          tooltip: 'Consume & Archive',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                          onPressed: () async {
+                            final ok = await groceryProvider.deleteGrocery(item.id);
+                            if (ok && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Item deleted successfully.'), backgroundColor: Colors.red),
+                              );
+                            }
+                          },
+                          tooltip: 'Delete',
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -85,31 +173,39 @@ class _CategoriesViewState extends State<CategoriesView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Categories', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Categories', style: TextStyle(fontWeight: FontWeight.w900)),
+        elevation: 0,
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.1,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.15,
         ),
         itemCount: _categoriesList.length,
         itemBuilder: (context, index) {
           final cat = _categoriesList[index];
           final String catName = cat['name'];
-          final IconData icon = cat['icon'];
+          final String emoji = cat['emoji'];
           final Color color = cat['color'];
 
           // Count active items matching this category
           final itemCount = groceryProvider.groceries.where((e) => e.category == catName).length;
 
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Colors.grey.withOpacity(0.15)),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x02000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
@@ -125,23 +221,28 @@ class _CategoriesViewState extends State<CategoriesView> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withOpacity(0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(icon, color: color, size: 28),
+                      alignment: Alignment.center,
+                      child: Text(
+                        emoji,
+                        style: const TextStyle(fontSize: 22),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       catName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$itemCount items',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      '$itemCount active items',
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

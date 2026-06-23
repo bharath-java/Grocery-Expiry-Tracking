@@ -2,30 +2,30 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Light Mode Colors
-  static const Color lightBackground = Color(0xFFF8FAFC);
+  static const Color lightBackground = Color(0xFFFFFFFF);
   static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color lightTextPrimary = Color(0xFF0F172A);
-  static const Color lightTextSecondary = Color(0xFF475569);
-  static const Color lightBorder = Color(0xFFE2E8F0);
-  static const Color lightInputBackground = Color(0xFFF1F5F9);
+  static const Color lightTextPrimary = Color(0xFF1E293B);
+  static const Color lightTextSecondary = Color(0xFF64748B);
+  static const Color lightBorder = Color(0xFFF1F5F9);
+  static const Color lightInputBackground = Color(0xFFF8FAFC);
 
   // Dark Mode Colors
-  static const Color darkBackground = Color(0xFF0B1116);
-  static const Color darkCard = Color(0xFF16222F);
-  static const Color darkTextPrimary = Color(0xFFFFFFFF);
-  static const Color darkTextSecondary = Color(0xFFCBD5E1);
-  static const Color darkBorder = Color(0xFF223347);
-  static const Color darkInputBackground = Color(0xFF101720);
+  static const Color darkBackground = Color(0xFF09090B);
+  static const Color darkCard = Color(0xFF18181B);
+  static const Color darkTextPrimary = Color(0xFFF4F4F5);
+  static const Color darkTextSecondary = Color(0xFFA1A1AA);
+  static const Color darkBorder = Color(0xFF27272A);
+  static const Color darkInputBackground = Color(0xFF18181B);
 
   // Core App Colors (Unified)
   static const Color primary = Color(0xFF2E7D32); // Deep forest green
   static const Color primaryLight = Color(0xFF4CAF50); // Accent light green
   static const Color primaryBgLight = Color(0xFFE8F5E9); // Soft green badge background
-  static const Color primaryBgDark = Color(0xFF1B2E1E);
+  static const Color primaryBgDark = Color(0xFF14532D);
 
   // Expiry Status Colors
   static const Color statusExpired = Color(0xFFEF5350); // Red
-  static const Color statusExpiringSoon = Color(0xFFFF9800); // Orange
+  static const Color statusExpiringSoon = Color(0xFFFFA726); // Orange
   static const Color statusFresh = Color(0xFF4CAF50); // Green
 
   static ThemeData getLightTheme() {
