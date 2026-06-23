@@ -25,6 +25,15 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Generate Android Template and Wrappers
+        run: |
+          flutter create --platforms=android --org com.groceryexpirytracker clean_app
+          cp -r clean_app/android/gradlew mobile/android/
+          cp -r clean_app/android/gradlew.bat mobile/android/
+          cp -r clean_app/android/gradle mobile/android/
+          mkdir -p mobile/android/app/src/main/res
+          cp -r clean_app/android/app/src/main/res/mipmap-* mobile/android/app/src/main/res/
+
       - name: Install Dependencies
         run: |
           cd mobile
