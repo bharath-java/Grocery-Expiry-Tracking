@@ -28,10 +28,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     if (success && mounted) {
       Navigator.pushNamed(
         context,
-        '/otp',
+        '/reset-password',
         arguments: {
           'email': _emailController.text.trim(),
-          'type': 'reset',
         },
       );
     } else if (mounted) {

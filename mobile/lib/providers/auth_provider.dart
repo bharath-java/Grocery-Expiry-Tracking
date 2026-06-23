@@ -111,14 +111,75 @@ class AuthProvider extends ChangeNotifier {
 
       final responseData = response.data;
       if (responseData['success'] == true) {
+        final data = responseData['data'];
+        final userMap = data['user'];
+        final accessToken = data['accessToken'];
+        final refreshToken = data['refreshToken'];
+
+        _user = UserInfo.fromJson(userMap);
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(_user!.toJson()));
+        await prefs.setString('accessToken', accessToken);
+        await prefs.setString('refreshToken', refreshToken);
+
         _loading = false;
         notifyListeners();
-        return true; // Requires OTP verification next
+        return true;
       } else {
         _error = responseData['message'] ?? 'Registration failed';
       }
     } on DioException catch (e) {
       _error = e.response?.data['message'] ?? 'Registration failed';
+    } catch (e) {
+      _error = 'An unexpected error occurred';
+    }
+
+    _loading = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> googleLogin({
+    required String name,
+    required String email,
+    String avatar = '',
+    String googleId = '123456789',
+  }) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await _api.post('/auth/google-login', data: {
+        'name': name,
+        'email': email,
+        'avatar': avatar,
+        'googleId': googleId,
+      });
+
+      final responseData = response.data;
+      if (responseData['success'] == true) {
+        final data = responseData['data'];
+        final userMap = data['user'];
+        final accessToken = data['accessToken'];
+        final refreshToken = data['refreshToken'];
+
+        _user = UserInfo.fromJson(userMap);
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(_user!.toJson()));
+        await prefs.setString('accessToken', accessToken);
+        await prefs.setString('refreshToken', refreshToken);
+
+        _loading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = responseData['message'] ?? 'Google Sign-In failed';
+      }
+    } on DioException catch (e) {
+      _error = e.response?.data['message'] ?? 'Google Sign-In failed';
     } catch (e) {
       _error = 'An unexpected error occurred';
     }
