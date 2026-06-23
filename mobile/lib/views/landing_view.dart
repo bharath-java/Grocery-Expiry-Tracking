@@ -55,7 +55,7 @@ class LandingView extends StatelessWidget {
                   'Grocery Expiry Tracker',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontSize: 28,
-                        fontWeight: FontWeight.black,
+                        fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
                       ),
                   textAlign: TextAlign.center,

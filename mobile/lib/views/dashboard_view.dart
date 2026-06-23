@@ -58,11 +58,11 @@ class _DashboardViewState extends State<DashboardView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Grocery Dashboard', style: TextStyle(fontWeight: FontWeight.black)),
+        title: const Text('Grocery Dashboard', style: TextStyle(fontWeight: FontWeight.w900)),
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.sparkles, color: Colors.purple),
+            icon: const Icon(Icons.auto_awesome, color: Colors.purple),
             onPressed: () {
               Navigator.pushNamed(context, '/ai-assistant');
             },
@@ -257,7 +257,7 @@ class _DashboardViewState extends State<DashboardView> {
           children: [
             Text(
               count.toString(),
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.black, color: color),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: color),
             ),
             const SizedBox(height: 4),
             Text(
@@ -351,7 +351,7 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, py: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(8),
