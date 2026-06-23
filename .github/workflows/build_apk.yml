@@ -36,7 +36,20 @@ jobs:
           python -c "
           import os
           settings_path = 'android/settings.gradle'
-          if os.path.exists(settings_path):
+          settings_kts_path = 'android/settings.gradle.kts'
+
+          if os.path.exists(settings_kts_path):
+              with open(settings_kts_path, 'r') as f:
+                  content = f.read()
+              if 'com.google.gms.google-services' not in content:
+                  lines = content.split('\n')
+                  for i, line in enumerate(lines):
+                      if 'plugins {' in line:
+                          lines.insert(i + 1, '    id(\"com.google.gms.google-services\") version \"4.3.15\" apply false')
+                          break
+                  with open(settings_kts_path, 'w') as f:
+                      f.write('\n'.join(lines))
+          elif os.path.exists(settings_path):
               with open(settings_path, 'r') as f:
                   content = f.read()
               if 'com.google.gms.google-services' not in content:
@@ -49,15 +62,35 @@ jobs:
                       f.write('\n'.join(lines))
 
           build_gradle_path = 'android/app/build.gradle'
-          if os.path.exists(build_gradle_path):
+          build_gradle_kts_path = 'android/app/build.gradle.kts'
+
+          if os.path.exists(build_gradle_kts_path):
+              with open(build_gradle_kts_path, 'r') as f:
+                  content = f.read()
+              
+              if 'isCoreLibraryDesugaringEnabled' not in content:
+                  compile_opt_start = content.find('compileOptions {')
+                  if compile_opt_start != -1:
+                      compile_opt_end = content.find('}', compile_opt_start)
+                      old_block = content[compile_opt_start:compile_opt_end+1]
+                      new_block = 'compileOptions {\n        sourceCompatibility = JavaVersion.VERSION_17\n        targetCompatibility = JavaVersion.VERSION_17\n        isCoreLibraryDesugaringEnabled = true\n    }'
+                      content = content.replace(old_block, new_block)
+                      
+              if 'coreLibraryDesugaring' not in content:
+                  content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")')
+                  
+              with open(build_gradle_kts_path, 'w') as f:
+                  f.write(content)
+                  
+              with open(build_gradle_kts_path, 'a') as f:
+                  f.write('\n\nif (file(\"google-services.json\").exists()) {\n    apply(plugin = \"com.google.gms.google-services\")\n}\n')
+          elif os.path.exists(build_gradle_path):
               with open(build_gradle_path, 'r') as f:
                   content = f.read()
               
-              # Enable coreLibraryDesugaringEnabled true inside compileOptions
               if 'coreLibraryDesugaringEnabled' not in content:
                   content = content.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true')
               
-              # Add desugar library to dependencies
               if 'coreLibraryDesugaring' not in content:
                   content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring \'com.android.tools:desugar_jdk_libs:2.0.3\'')
               
