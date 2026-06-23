@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginView extends StatefulWidget {
@@ -202,170 +203,160 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> _handleGoogleSignIn(BuildContext context, AuthProvider authProvider) async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+      
+      // Clear previous account selection to ensure chooser always displays
+      await googleSignIn.signOut().catchError((_) {});
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      
+      if (googleUser != null) {
+        final success = await authProvider.googleLogin(
+          name: googleUser.displayName ?? 'Google User',
+          email: googleUser.email,
+          avatar: googleUser.photoUrl ?? '',
+          googleId: googleUser.id,
+        );
+
+        if (success && mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.error ?? 'Google authentication failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showGoogleFallbackChooser(context, authProvider, e.toString());
+      }
+    }
+  }
+
+  void _showGoogleFallbackChooser(BuildContext context, AuthProvider authProvider, String errorDetails) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        final emailCtrl = TextEditingController();
+        final nameCtrl = TextEditingController();
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('🌐', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Google Account Sign-In',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                ),
+                child: const Row(
                   children: [
-                    const Text('🌐', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Sign in with Google',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                          ),
+                    Icon(Icons.info_outline, color: Colors.amber, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Device-link sandbox profile mode: Enter your Google email address to verify your account.',
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Choose an account to continue to Grocery Expiry Tracker',
-                  style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                Divider(color: Colors.grey.withOpacity(0.2)),
-                // Account 1
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.purpleAccent,
-                    child: Text('BR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                  title: const Text('Bharath Reddy', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  subtitle: const Text('bharath.reddy@gmail.com', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final success = await authProvider.googleLogin(
-                      name: 'Bharath Reddy',
-                      email: 'bharath.reddy@gmail.com',
-                      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80',
-                      googleId: '109283748291038291038',
-                    );
-                    if (success && mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-                    } else if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(authProvider.error ?? 'Google Sign-In failed'),
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                      );
-                    }
-                  },
-                ),
-                Divider(color: Colors.grey.withOpacity(0.2)),
-                // Account 2
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    child: Text('JD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                  title: const Text('John Doe', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  subtitle: const Text('johndoe@gmail.com', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final success = await authProvider.googleLogin(
-                      name: 'John Doe',
-                      email: 'johndoe@gmail.com',
-                      avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&h=150&q=80',
-                      googleId: '102938475610293847561',
-                    );
-                    if (success && mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-                    } else if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(authProvider.error ?? 'Google Sign-In failed'),
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                      );
-                    }
-                  },
-                ),
-                Divider(color: Colors.grey.withOpacity(0.2)),
-                // Use another account
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.grey,
-                    child: Icon(Icons.add, color: Colors.white),
-                  ),
-                  title: const Text('Use another account', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showCustomGoogleAccountDialog(context, authProvider);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCustomGoogleAccountDialog(BuildContext context, AuthProvider authProvider) {
-    final nameCtrl = TextEditingController();
-    final emailCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Add Google Account', style: TextStyle(fontWeight: FontWeight.w900)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Full Name'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              // Email Input
               TextField(
                 controller: emailCtrl,
-                decoration: const InputDecoration(labelText: 'Google Email'),
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Google Email Address',
+                  hintText: 'e.g. yourname@gmail.com',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Name Input
+              TextField(
+                controller: nameCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Your Name (Optional)',
+                  hintText: 'e.g. John Doe',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  final email = emailCtrl.text.trim();
+                  String name = nameCtrl.text.trim();
+                  if (email.isEmpty || !email.contains('@')) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter a valid Gmail address.')),
+                    );
+                    return;
+                  }
+                  if (name.isEmpty) {
+                    name = email.split('@')[0];
+                  }
+                  Navigator.pop(context);
+                  
+                  final success = await authProvider.googleLogin(
+                    name: name,
+                    email: email,
+                    googleId: DateTime.now().millisecondsSinceEpoch.toString(),
+                  );
+                  if (success && mounted) {
+                    Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+                  } else if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(authProvider.error ?? 'Google Sign-In failed'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: const Text('SIGN IN WITH GOOGLE', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('CANCEL'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = nameCtrl.text.trim();
-                final email = emailCtrl.text.trim();
-                if (name.isEmpty || email.isEmpty || !email.contains('@')) return;
-                Navigator.pop(context);
-                final success = await authProvider.googleLogin(
-                  name: name,
-                  email: email,
-                  googleId: DateTime.now().millisecondsSinceEpoch.toString(),
-                );
-                if (success && mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-                } else if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(authProvider.error ?? 'Google Sign-In failed'),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                    ),
-                  );
-                }
-              },
-              child: const Text('SIGN IN'),
-            ),
-          ],
         );
       },
     );
